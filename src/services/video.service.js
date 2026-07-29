@@ -19,9 +19,12 @@ const TEMP_DIR = path.join(UPLOADS_DIR, 'temp');
 const VIDEOS_DIR = path.join(UPLOADS_DIR, 'videos');
 
 // Ensure necessary directories exist for local fallback
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
-if (!fs.existsSync(VIDEOS_DIR)) fs.mkdirSync(VIDEOS_DIR, { recursive: true });
+// Ensure necessary directories exist only for local development
+if (!process.env.VERCEL) {
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+  if (!fs.existsSync(VIDEOS_DIR)) fs.mkdirSync(VIDEOS_DIR, { recursive: true });
+}
 
 /**
  * Helper to format duration in seconds to standard readable format (e.g. 14m 33s)
