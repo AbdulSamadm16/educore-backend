@@ -1,0 +1,51 @@
+{
+  "name": "educore-module01-auth-user-management",
+  "version": "1.0.0",
+  "description": "Module 01 backend for EduCore LMS authentication and user management.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "syntax": "node scripts/check-syntax.js",
+    "docs:check": "node scripts/check-swagger-coverage.js",
+    "docs:api-test-pdf": "node scripts/generate-api-test-pdf.js",
+    "audit:duplicate-emails": "node scripts/audit-duplicate-emails.js",
+    "seed:platform-owner": "node scripts/seed-platform-owner.js",
+    "seed:admins": "node scripts/seed-admins.js",
+    "db:seed:institution": "node scripts/setup-ins-data.js",
+    "test": "npm run syntax"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@mux/mux-node": "^14.1.0",
+    "axios": "^1.16.1",
+    "bcrypt": "^6.0.0",
+    "bullmq": "^5.77.3",
+    "cloudinary": "^2.5.1",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "googleapis": "^173.0.0",
+    "helmet": "^8.0.0",
+    "ioredis": "^5.4.2",
+    "joi": "^17.13.3",
+    "json2csv": "^6.0.0-alpha.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "pdfkit": "^0.18.0",
+    "razorpay": "^2.9.6",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
