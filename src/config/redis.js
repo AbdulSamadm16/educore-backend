@@ -168,14 +168,11 @@ const createDevelopmentFallbackClient = (primary, label) => {
 };
 
 const createRedisClient = () => {
-  if (env.redis.useMemory) {
-    if (env.isProduction) {
-      throw new Error('In-memory Redis driver is not allowed in production');
-    }
+if (env.redis.useMemory) {
+  console.warn('Using in-memory Redis driver.');
 
-    console.warn('Using in-memory Redis driver. OTPs and rate limits will reset when the server restarts.');
-    return createMemoryClient();
-  }
+  return createMemoryClient();
+}
 
   if (env.redis.useUpstashRest) {
     return createDevelopmentFallbackClient(createUpstashRestClient(), 'Upstash Redis');
