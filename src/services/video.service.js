@@ -267,19 +267,21 @@ const initializeUpload = async ({ lessonId, fileName, fileSize, notifyLearners, 
   await saveLessonAndClearCache(lesson);
 
   const sessionTempDir = path.join(TEMP_DIR, uploadId);
-  if (!fs.existsSync(sessionTempDir)) {
-    fs.mkdirSync(sessionTempDir, { recursive: true });
-  }
+  if (!process.env.VERCEL) {
+    if (!fs.existsSync(sessionTempDir)) {
+      fs.mkdirSync(sessionTempDir, { recursive: true });
+    }
 
-  const meta = {
-    lessonId,
-    uploadId,
-    fileName,
-    fileSize,
-    ext,
-    createdAt: new Date().toISOString()
-  };
-  fs.writeFileSync(path.join(sessionTempDir, 'metadata.json'), JSON.stringify(meta, null, 2));
+    const meta = {
+      lessonId,
+      uploadId,
+      fileName,
+      fileSize,
+      ext,
+      createdAt: new Date().toISOString()
+    };
+    fs.writeFileSync(path.join(sessionTempDir, 'metadata.json'), JSON.stringify(meta, null, 2));
+  }
 
   return {
     mode: 'local',
@@ -433,6 +435,10 @@ const getUploadStatus = async ({ lessonId, user }) => {
  * Upload Video Chunk (Used in Local Fallback mode)
  */
 const uploadChunk = async ({ lessonId, uploadId, chunkIndex, fileBuffer, user }) => {
+  if (process.env.VERCEL) {
+    throw new ApiError(400, 'Local filesystem chunk upload is not available on Vercel. Please configure Mux or Cloudinary.', 'VERCEL_FS_UNSUPPORTED');
+  }
+
   const { lesson } = await validateLessonAccess(lessonId, user);
 
   if (lesson.videoUploadId !== uploadId) {
@@ -457,6 +463,10 @@ const uploadChunk = async ({ lessonId, uploadId, chunkIndex, fileBuffer, user })
  * Complete Chunked Upload (Used in Local Fallback mode)
  */
 const completeUpload = async ({ lessonId, uploadId, totalChunks, user }) => {
+  if (process.env.VERCEL) {
+    throw new ApiError(400, 'Local filesystem chunk assembly is not available on Vercel. Please configure Mux or Cloudinary.', 'VERCEL_FS_UNSUPPORTED');
+  }
+
   const { lesson, course } = await validateLessonAccess(lessonId, user);
 
   if (lesson.videoUploadId !== uploadId) {

@@ -53,8 +53,10 @@ const generateCertificateSynchronously = async (certificateId) => {
   }
 
   const uploadsDir = path.join(__dirname, '../../uploads/certificates');
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+  if (!process.env.VERCEL) {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
   }
 
   const fileName = `${cert.certificateNumber}.pdf`;
@@ -68,7 +70,9 @@ const generateCertificateSynchronously = async (certificateId) => {
 
   try {
     const pdfBuffer = await generateCertificatePdf(cert, course, learner, tutor, template, institution);
-    fs.writeFileSync(filePath, pdfBuffer);
+    if (!process.env.VERCEL) {
+      fs.writeFileSync(filePath, pdfBuffer);
+    }
 
     cert.status = 'issued';
     cert.blockchainTxId = `tx_${Date.now()}`;

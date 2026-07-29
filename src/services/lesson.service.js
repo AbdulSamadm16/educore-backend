@@ -5,8 +5,10 @@ const Course = require('../models/course.model');
 const Module = require('../models/module.model');
 
 const SUBTITLES_DIR = path.join(__dirname, '../../uploads/subtitles');
-if (!fs.existsSync(SUBTITLES_DIR)) {
-  fs.mkdirSync(SUBTITLES_DIR, { recursive: true });
+if (!process.env.VERCEL) {
+  if (!fs.existsSync(SUBTITLES_DIR)) {
+    fs.mkdirSync(SUBTITLES_DIR, { recursive: true });
+  }
 }
 const Enrollment = require('../models/enrollment.model');
 const { signVideoUrl } = require('../services/video.service');

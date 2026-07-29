@@ -14,17 +14,18 @@ const sendDevEmail = ({ to, subject, text, html, recipientName }, reason = undef
     html
   }));
 
-  // Append simulated email to Backend/logs/dev-emails.log
-  try {
-    const fs = require('fs');
-    const path = require('path');
-    const logsDir = path.join(__dirname, '../../logs');
-    if (!fs.existsSync(logsDir)) {
-      fs.mkdirSync(logsDir, { recursive: true });
-    }
-    const logFilePath = path.join(logsDir, 'dev-emails.log');
-    const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] 
+  // Append simulated email to Backend/logs/dev-emails.log in local development
+  if (!process.env.VERCEL) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const logsDir = path.join(__dirname, '../../logs');
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+      }
+      const logFilePath = path.join(logsDir, 'dev-emails.log');
+      const timestamp = new Date().toISOString();
+      const logEntry = `[${timestamp}] 
 To: ${to} (${recipientName || 'No Name'})
 Subject: ${subject}
 Reason: ${reason || 'N/A'}
@@ -34,9 +35,10 @@ HTML:
 ${html}
 ================================================================================
 \n`;
-    fs.appendFileSync(logFilePath, logEntry, 'utf8');
-  } catch (fsErr) {
-    console.error('Failed to append simulated email to dev-emails.log:', fsErr);
+      fs.appendFileSync(logFilePath, logEntry, 'utf8');
+    } catch (fsErr) {
+      console.error('Failed to append simulated email to dev-emails.log:', fsErr);
+    }
   }
 
   // Automatically log to database as sent or failed
