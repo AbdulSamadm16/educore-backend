@@ -16,13 +16,41 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const { errorHandler, notFoundHandler } = require('./middlewares/error.middleware');
 const { ApiError } = require('./utils/errors');
-const { mongoose } = require('./config/database');
+
+const { mongoose, connectMongo } = require('./config/database');
+
+
+
 
 // Load event subscribers
 require('./subscribers/auth.subscriber');
 
 
 const app = express();
+
+let mongoConnectionPromise;
+
+const ensureMongoConnection = async () => {
+  if (mongoose.connection.readyState === 1) return;
+
+  if (!mongoConnectionPromise) {
+    mongoConnectionPromise = connectMongo().catch((err) => {
+      mongoConnectionPromise = null;
+      throw err;
+    });
+  }
+
+  await mongoConnectionPromise;
+};
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureMongoConnection();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 
