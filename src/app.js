@@ -63,6 +63,7 @@ if (env.trustProxy) {
 app.disable('x-powered-by');
 
 app.use(helmet({
+  contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   hsts: env.isProduction
     ? {
@@ -110,20 +111,20 @@ app.get('/', (_req, res) => {
 // ======================================================
 // SWAGGER (must be before any wildcard/static frontend routes)
 // ======================================================
-app.get('/test-static', (req, res) => {
-  res.type('text/css').send('body { background: red; }');
-});
-// Swagger UI
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve);
+const SWAGGER_CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui.min.css';
+const SWAGGER_JS_BUNDLE = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-bundle.min.js';
+const SWAGGER_JS_PRESET = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-standalone-preset.min.js';
 
-app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-}));
-
-app.get('/api-docs/', swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCssUrl: SWAGGER_CSS_URL,
+    customJs: [SWAGGER_JS_BUNDLE, SWAGGER_JS_PRESET],
+    customSiteTitle: 'EduCore LMS API Documentation',
+    explorer: true,
+  })
+);
 // ======================================================
 // HEALTH ENDPOINTS
 // ======================================================
