@@ -112,9 +112,13 @@ app.get('/', (_req, res) => {
 // ======================================================
 
 // Swagger UI
-app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(swaggerSpec));
-app.get('/api-docs/', swaggerUi.setup(swaggerSpec));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true
+  })
+);
 
 // ======================================================
 // HEALTH ENDPOINTS
@@ -184,30 +188,6 @@ app.get('/health/db', async (_req, res) => {
     });
   }
 });
-
-// Serve frontend static files (if a production build exists)
-const frontendDist = path.join(__dirname, '../../Frontend/dist');
-if (fs.existsSync(frontendDist)) {
-  app.use(express.static(frontendDist, { index: false }));
-
-
-
-  // SPA fallback for navigation requests only. Skip API, auth, uploads and assets.
-  app.get('*', (req, res, next) => {
-    const url = req.originalUrl || req.url || '';
-    if (
-  url.startsWith('/api') ||
-  url.startsWith('/auth') ||
-  url.startsWith('/uploads') ||
-  url.startsWith('/assets') ||
-  url.startsWith('/api-docs')
-
-) {
-  return next();
-}
-    return res.sendFile(path.join(frontendDist, 'index.html'));
-  });
-}
 
 
 const { optionalAuthenticate } = require('./middlewares/auth.middleware');
@@ -414,6 +394,37 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/tutors/google', require('./routes/tutorGoogleAuth.routes'));
 app.use('/api/v1/institutions', require('./routes/institutions.routes'));
 app.use('/api/v1', routes);
+
+
+// ======================================================
+// FRONTEND STATIC FILES (move here)
+// ======================================================
+const frontendDist = path.join(__dirname, '../../Frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist, { index: false }));
+
+
+
+  // SPA fallback for navigation requests only. Skip API, auth, uploads and assets.
+  app.get('*', (req, res, next) => {
+    const url = req.originalUrl || req.url || '';
+    if (
+  url.startsWith('/api') ||
+  url.startsWith('/auth') ||
+  url.startsWith('/uploads') ||
+  url.startsWith('/assets') ||
+  url.startsWith('/api-docs')
+
+) {
+  return next();
+}
+    return res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
+// ======================================================
+// ERROR HANDLERS (must be last)
+// ======================================================
 
 app.use(notFoundHandler);
 app.use(errorHandler);
