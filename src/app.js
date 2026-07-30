@@ -115,6 +115,10 @@ const SWAGGER_CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0
 const SWAGGER_JS_BUNDLE = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-bundle.min.js';
 const SWAGGER_JS_PRESET = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-standalone-preset.min.js';
 
+app.get('/api-docs/swagger-ui.css', (_req, res) => res.redirect(SWAGGER_CSS_URL));
+app.get('/api-docs/swagger-ui-bundle.js', (_req, res) => res.redirect(SWAGGER_JS_BUNDLE));
+app.get('/api-docs/swagger-ui-standalone-preset.js', (_req, res) => res.redirect(SWAGGER_JS_PRESET));
+
 app.use(
   '/api-docs',
   swaggerUi.serve,
