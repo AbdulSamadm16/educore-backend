@@ -110,16 +110,15 @@ app.get('/', (_req, res) => {
 // ======================================================
 // SWAGGER (must be before any wildcard/static frontend routes)
 // ======================================================
-
+app.get('/test-static', (req, res) => {
+  res.type('text/css').send('body { background: red; }');
+});
 // Swagger UI
 app.use(
   '/api-docs',
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    explorer: true
-  })
+  swaggerUi.serveFiles(swaggerSpec),
+  swaggerUi.setup(swaggerSpec)
 );
-
 // ======================================================
 // HEALTH ENDPOINTS
 // ======================================================
