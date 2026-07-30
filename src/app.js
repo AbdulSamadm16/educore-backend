@@ -93,23 +93,122 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(mongoSanitize());
 
+// ======================================================
+// ROOT API ROUTE
+// ======================================================
+
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'EduCore LMS API',
+    version: 'v1',
+    docs: '/api-docs',
+    health: '/health'
+  });
+});
+
+// ======================================================
+// SWAGGER (must be before any wildcard/static frontend routes)
+// ======================================================
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec));
+app.get('/api-docs/', swaggerUi.setup(swaggerSpec));
+
+// ======================================================
+// HEALTH ENDPOINTS
+// ======================================================
+
+app.get('/health', (_req, res) => {
+  const memUsage = process.memoryUsage();
+
+  res.status(200).json({
+    success: true,
+    message: 'EduCore LMS API is healthy',
+    data: {
+      status: 'ok',
+      environment: env.nodeEnv,
+      uptime: Math.floor((Date.now() - startTime) / 1000),
+      timestamp: new Date().toISOString(),
+      memory: {
+        rss: Math.round(memUsage.rss / 1024 / 1024),
+        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
+        heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024)
+      }
+    }
+  });
+});
+
+app.get('/health/db', async (_req, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const stateMap = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+
+    if (dbState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database is not connected',
+        data: {
+          status: stateMap[dbState] || 'unknown'
+        }
+      });
+    }
+
+    // Lightweight ping
+    await mongoose.connection.db.admin().ping();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Database is connected',
+      data: {
+        status: 'connected',
+        name: mongoose.connection.name,
+        host: mongoose.connection.host
+      }
+    });
+  } catch (error) {
+    logger.error('Health check DB failed', { error: error.message });
+
+    return res.status(503).json({
+      success: false,
+      message: 'Database health check failed',
+      data: {
+        status: 'error'
+      }
+    });
+  }
+});
+
 // Serve frontend static files (if a production build exists)
 const frontendDist = path.join(__dirname, '../../Frontend/dist');
 if (fs.existsSync(frontendDist)) {
   app.use(express.static(frontendDist, { index: false }));
 
-  // Serve index for root
-  app.get('/', (_req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+
 
   // SPA fallback for navigation requests only. Skip API, auth, uploads and assets.
   app.get('*', (req, res, next) => {
     const url = req.originalUrl || req.url || '';
-    if (url.startsWith('/api') || url.startsWith('/auth') || url.startsWith('/uploads') || url.startsWith('/assets') || url.startsWith('/api-docs')) {
-      return next();
-    }
+    if (
+  url.startsWith('/api') ||
+  url.startsWith('/auth') ||
+  url.startsWith('/uploads') ||
+  url.startsWith('/assets') ||
+  url.startsWith('/api-docs')
+
+) {
+  return next();
+}
     return res.sendFile(path.join(frontendDist, 'index.html'));
   });
 }
+
 
 const { optionalAuthenticate } = require('./middlewares/auth.middleware');
 
@@ -303,80 +402,12 @@ if (env.isProduction) {
   app.use(morgan('dev'));
 }
 
-// ======================================================
-// HEALTH ENDPOINTS
-// ======================================================
 
-app.get('/health', (_req, res) => {
-  const memUsage = process.memoryUsage();
-
-  res.status(200).json({
-    success: true,
-    message: 'EduCore LMS API is healthy',
-    data: {
-      status: 'ok',
-      environment: env.nodeEnv,
-      uptime: Math.floor((Date.now() - startTime) / 1000),
-      timestamp: new Date().toISOString(),
-      memory: {
-        rss: Math.round(memUsage.rss / 1024 / 1024),
-        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
-        heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024)
-      }
-    }
-  });
-});
-
-app.get('/health/db', async (_req, res) => {
-  try {
-    const dbState = mongoose.connection.readyState;
-    const stateMap = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting'
-    };
-
-    if (dbState !== 1) {
-      return res.status(503).json({
-        success: false,
-        message: 'Database is not connected',
-        data: {
-          status: stateMap[dbState] || 'unknown'
-        }
-      });
-    }
-
-    // Lightweight ping
-    await mongoose.connection.db.admin().ping();
-
-    return res.status(200).json({
-      success: true,
-      message: 'Database is connected',
-      data: {
-        status: 'connected',
-        name: mongoose.connection.name,
-        host: mongoose.connection.host
-      }
-    });
-  } catch (error) {
-    logger.error('Health check DB failed', { error: error.message });
-
-    return res.status(503).json({
-      success: false,
-      message: 'Database health check failed',
-      data: {
-        status: 'error'
-      }
-    });
-  }
-});
 
 // ======================================================
 // ROUTES
 // ======================================================
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/platform', platformRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/v1/auth', authRoutes);
