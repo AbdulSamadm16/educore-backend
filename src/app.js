@@ -114,13 +114,16 @@ app.get('/test-static', (req, res) => {
   res.type('text/css').send('body { background: red; }');
 });
 // Swagger UI
-app.use(
-  '/api-docs',
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    explorer: true
-  })
-);
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve);
+
+app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+}));
+
+app.get('/api-docs/', swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+}));
 // ======================================================
 // HEALTH ENDPOINTS
 // ======================================================
