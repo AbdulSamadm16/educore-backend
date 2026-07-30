@@ -116,8 +116,10 @@ app.get('/test-static', (req, res) => {
 // Swagger UI
 app.use(
   '/api-docs',
-  swaggerUi.serveFiles(swaggerSpec),
-  swaggerUi.setup(swaggerSpec)
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true
+  })
 );
 // ======================================================
 // HEALTH ENDPOINTS
