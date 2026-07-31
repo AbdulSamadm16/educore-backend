@@ -273,7 +273,8 @@ const getCourseById = async ({ courseId, userId, userRole }) => {
       .lean();
   }
 
-  const isAuthor = userId && course.authorId._id.toString() === userId.toString();
+  const authorIdStr = course.authorId?._id ? course.authorId._id.toString() : (course.authorId ? course.authorId.toString() : null);
+  const isAuthor = Boolean(userId && authorIdStr && authorIdStr === userId.toString());
   const isAdmin = isAdminRole(userRole);
   const isPrivileged = isAuthor || isAdmin;
 
